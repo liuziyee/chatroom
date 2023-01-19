@@ -61,6 +61,8 @@ public class ChatClient {
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
+        } finally {
+            close();
         }
     }
 

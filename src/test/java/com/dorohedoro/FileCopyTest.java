@@ -48,11 +48,13 @@ public class FileCopyTest {
              FileChannel out = new FileOutputStream(target).getChannel()) {
             ByteBuffer buffer = ByteBuffer.allocate(1024);
             while (in.read(buffer) != -1) {
-                buffer.flip(); // 写模式转为读模式
+                log.info("写模式 => 读模式");
+                buffer.flip();
                 while (buffer.hasRemaining()) {
                     out.write(buffer);
                 }
-                buffer.clear(); // 读模式转为写模式
+                log.info("写模式复位");
+                buffer.clear();
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);

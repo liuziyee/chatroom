@@ -79,6 +79,8 @@ public class ChatServer {
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
+        } finally {
+            close();
         }
     }
 
