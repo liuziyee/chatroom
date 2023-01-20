@@ -2,10 +2,7 @@ package com.dorohedoro.bio.server;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -16,12 +13,12 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class ChatServer {
 
-    private final int DEFAULT_PORT = 8080;
-    private final String QUIT = "bye";
+    private static final int DEFAULT_PORT = 8080;
+    private static final String QUIT = "bye";
 
-    private final ExecutorService pool = Executors.newFixedThreadPool(5);
+    private ExecutorService pool = Executors.newFixedThreadPool(5);
     private ServerSocket serverSocket;
-    private final Map<Integer, Writer> connectedClients = new HashMap<>();
+    private Map<Integer, Writer> connectedClients = new HashMap<>();
 
     public synchronized void addClient(Socket socket) throws IOException {
         if (socket != null) {
@@ -57,11 +54,10 @@ public class ChatServer {
         return QUIT.equals(msg);
     }
 
-    public synchronized void close() {
+    public synchronized void close(Closeable closeable) {
         try {
-            if (serverSocket != null) {
-                serverSocket.close();
-                log.info("关闭服务器套接字");
+            if (closeable != null) {
+                closeable.close();
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
@@ -80,7 +76,7 @@ public class ChatServer {
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
         } finally {
-            close();
+            close(serverSocket);
         }
     }
 

@@ -2,6 +2,7 @@ package com.dorohedoro.nio.server;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -12,9 +13,9 @@ import java.util.Set;
 @Slf4j
 public class ChatServer {
 
-    private final int DEFAULT_PORT = 8080;
-    private final String QUIT = "bye";
-    private final int SIZE = 1024;
+    private static final int DEFAULT_PORT = 8080;
+    private static final String QUIT = "bye";
+    private static final int SIZE = 1024;
 
     private ServerSocketChannel server;
     private Selector selector;
@@ -27,21 +28,24 @@ public class ChatServer {
             server.socket().bind(new InetSocketAddress(DEFAULT_PORT));
 
             selector = Selector.open();
-            log.info("channel置为非阻塞模式,向selector注册一个ACCEPT事件");
+            log.debug("channel置为非阻塞模式,向selector注册一个ACCEPT事件");
             server.configureBlocking(false);
             server.register(selector, SelectionKey.OP_ACCEPT);
             log.info("服务器[" + DEFAULT_PORT + "]已启动");
 
             while (true) {
-                log.info("阻塞直到至少有一个channel在注册的事件上就绪");
+                log.debug("阻塞直到至少有一个channel在注册的事件上就绪");
                 selector.select();
                 Set<SelectionKey> keys = selector.selectedKeys();
                 for (SelectionKey key : keys) {
                     handleEvent(key);
                 }
+                keys.clear();
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
+        } finally {
+            close(selector);
         }
     }
 
@@ -51,6 +55,7 @@ public class ChatServer {
             SocketChannel client = server.accept();
             client.configureBlocking(false);
             client.register(selector, SelectionKey.OP_READ);
+            log.info("客户端[" + client.socket().getPort() + "]已连接");
         }
         if (key.isReadable()) {
             SocketChannel client = (SocketChannel) key.channel();
@@ -70,14 +75,10 @@ public class ChatServer {
         }
     }
 
-    public boolean readyToQuit(String msg) {
-        return QUIT.equals(msg);
-    }
-
     private String receive(SocketChannel client) throws IOException {
-        log.info("写模式复位");
-        log.info("读取通道的数据,写到缓冲区");
-        log.info("写模式 => 读模式");
+        log.debug("写模式复位");
+        log.debug("读取通道的数据,写到缓冲区");
+        log.debug("写模式 => 读模式");
         readBuffer.clear();
         while (client.read(readBuffer) > 0);
         readBuffer.flip();
@@ -94,10 +95,10 @@ public class ChatServer {
                 continue;
             }
             if (key.isValid() && !channel.equals(client)) {
-                log.info("写模式复位");
-                log.info("写数据到缓冲区");
-                log.info("写模式 => 读模式");
-                log.info("读取缓冲区的数据,写到通道");
+                log.debug("写模式复位");
+                log.debug("写数据到缓冲区");
+                log.debug("写模式 => 读模式");
+                log.debug("读取缓冲区的数据,写到通道");
                 writeBuffer.clear();
                 writeBuffer.put(Charset.forName("utf-8").encode(msg));
                 writeBuffer.flip();
@@ -106,5 +107,23 @@ public class ChatServer {
                 }
             }
         }
+    }
+
+    public boolean readyToQuit(String msg) {
+        return QUIT.equals(msg);
+    }
+
+    public void close(Closeable closeable) {
+        try {
+            if (closeable != null) {
+                closeable.close();
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public static void main(String[] args) {
+        new ChatServer().start();
     }
 }

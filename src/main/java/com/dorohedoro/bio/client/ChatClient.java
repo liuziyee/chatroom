@@ -1,16 +1,17 @@
 package com.dorohedoro.bio.client;
 
+import com.dorohedoro.common.IChatClient;
+import com.dorohedoro.common.KeyboardHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.Socket;
 
 @Slf4j
-public class ChatClient {
+public class ChatClient implements IChatClient {
 
-    private final String DEFAULT_SERVER_IP = "127.0.0.1";
-    private final int DEFAULT_SERVER_PORT = 8080;
-    private final String QUIT = "bye";
+    private static final String DEFAULT_SERVER_IP = "127.0.0.1";
+    private static final int DEFAULT_SERVER_PORT = 8080;
 
     private Socket socket;
     private BufferedReader reader;
@@ -31,21 +32,6 @@ public class ChatClient {
         return msg;
     }
 
-    public boolean readyToQuit(String msg) {
-        return QUIT.equals(msg);
-    }
-
-    public void close() {
-        try {
-            if (writer != null) {
-                writer.close();
-                log.info("关闭客户端套接字");
-            }
-        } catch (Throwable e) {
-            log.error(e.getMessage(), e);
-        }
-    }
-
     public void start() {
         try {
             socket = new Socket(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
@@ -62,7 +48,7 @@ public class ChatClient {
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
         } finally {
-            close();
+            close(writer);
         }
     }
 
