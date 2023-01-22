@@ -1,8 +1,12 @@
 package com.dorohedoro.bio.server;
 
+import com.dorohedoro.common.IChatServer;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -11,10 +15,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class ChatServer {
+public class ChatServer implements IChatServer {
 
     private static final int DEFAULT_PORT = 8080;
-    private static final String QUIT = "bye";
 
     private ExecutorService pool = Executors.newFixedThreadPool(5);
     private ServerSocket serverSocket;
@@ -47,20 +50,6 @@ public class ChatServer {
                 writer.write(msg + "\n");
                 writer.flush();
             }
-        }
-    }
-
-    public boolean readyToQuit(String msg) {
-        return QUIT.equals(msg);
-    }
-
-    public synchronized void close(Closeable closeable) {
-        try {
-            if (closeable != null) {
-                closeable.close();
-            }
-        } catch (Throwable e) {
-            log.error(e.getMessage(), e);
         }
     }
 

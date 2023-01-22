@@ -11,6 +11,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 @Slf4j
@@ -29,7 +30,7 @@ public class ChatClient implements IChatClient {
         try {
             client = SocketChannel.open();
             selector = Selector.open();
-            log.debug("channel置为非阻塞模式,向selector注册一个CONNECT事件");
+            log.debug("客户端通道置为非阻塞模式,向多路复用器注册一个CONNECT事件");
             client.configureBlocking(false);
             client.register(selector, SelectionKey.OP_CONNECT);
             client.connect(new InetSocketAddress(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT));
@@ -40,6 +41,7 @@ public class ChatClient implements IChatClient {
                 for (SelectionKey key : keys) {
                     handleEvent(key);
                 }
+                keys.clear();
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
@@ -54,6 +56,7 @@ public class ChatClient implements IChatClient {
                 client.finishConnect();
                 new Thread(new KeyboardHandler(this)).start();
             }
+            log.debug("客户端通道向多路复用器注册一个READ事件");
             client.register(selector, SelectionKey.OP_READ);
         }
         if (key.isReadable()) {
@@ -71,7 +74,7 @@ public class ChatClient implements IChatClient {
         readBuffer.clear();
         while(client.read(readBuffer) > 0);
         readBuffer.flip();
-        return new String(readBuffer.array(), readBuffer.position(), readBuffer.limit(), "utf-8");
+        return new String(readBuffer.array(), readBuffer.position(), readBuffer.limit(), StandardCharsets.UTF_8);
     }
 
     @Override
