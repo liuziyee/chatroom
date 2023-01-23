@@ -22,7 +22,7 @@ public class ClientCallback implements CompletionHandler<Integer, Map> {
         ByteBuffer buffer = (ByteBuffer) attachment.get("buffer");
         ChatServer chatServer = (ChatServer) attachment.get("server");
         if (buffer != null) {
-            // 读操作完成
+            log.info("READ操作完成");
             if (res <= 0) {
                 log.info(chatServer.getClientId(client) + "异常");
                 chatServer.removeClient(this);
