@@ -26,6 +26,7 @@ public class ChatClient implements IChatClient {
     private ByteBuffer writeBuffer = ByteBuffer.allocate(SIZE);
     private Selector selector;
 
+    @Override
     public void start() {
         try {
             client = SocketChannel.open();

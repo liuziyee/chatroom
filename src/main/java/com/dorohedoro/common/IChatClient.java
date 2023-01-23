@@ -11,8 +11,6 @@ public interface IChatClient {
 
     void start();
 
-    String receive() throws IOException;
-    
     void send(String msg) throws IOException;
     
     default boolean readyToQuit(String msg) {

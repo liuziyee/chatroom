@@ -17,6 +17,7 @@ public class ChatClient implements IChatClient {
     private BufferedReader reader;
     private BufferedWriter writer;
 
+    @Override
     public void send(String msg) throws IOException {
         if (!socket.isOutputShutdown()) {
             writer.write(msg + "\n");
@@ -32,6 +33,7 @@ public class ChatClient implements IChatClient {
         return msg;
     }
 
+    @Override
     public void start() {
         try {
             socket = new Socket(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);

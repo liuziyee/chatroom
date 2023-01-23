@@ -70,7 +70,7 @@ public class ChatServer implements IChatServer {
     }
 
     public void broadcast(AsynchronousSocketChannel client, String msg) {
-        msg = getClientId(client) + msg;
+        msg = getClientId(client) + ": " + msg;
         log.info(msg);
 
         for (ClientCallback callback : connectedClients) {
@@ -87,8 +87,11 @@ public class ChatServer implements IChatServer {
     
     @SneakyThrows
     public String getClientId(AsynchronousSocketChannel client) {
-        InetSocketAddress address = (InetSocketAddress) client.getRemoteAddress();
-        return "客户端[" + address.getPort() + "]";
+        if (client.isOpen()) {
+            InetSocketAddress address = (InetSocketAddress) client.getRemoteAddress();
+            return "客户端[" + address.getPort() + "]";
+        }
+        return "客户端[unknown]";
     }
 
     public static void main(String[] args) {
